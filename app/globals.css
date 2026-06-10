@@ -1,0 +1,454 @@
+/* Sora typeface (DESIGN.md primary font) */
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;900&display=swap");
+
+:root {
+  --emerald: #1db954;
+  --charcoal: #2c3038;
+  --dark-navy: #0b0d0f;
+  --near-black: #111214;
+  --white: #ffffff;
+  --light-gray: #f8f9fa;
+  --very-light-gray: #f0f1f3;
+  --pale-gray: #e5e7eb;
+  --stone-gray: #5a6170;
+  --medium-gray: #8a919c;
+  --error: #ef4444;
+
+  --shadow-subtle: rgba(0, 0, 0, 0.08) 0px 4px 16px 0px;
+  --shadow-raised: rgba(0, 0, 0, 0.12) 0px 8px 24px 0px;
+  --shadow-elevated: rgba(0, 0, 0, 0.3) 0px 4px 30px 0px;
+  --shadow-floating: rgba(29, 185, 84, 0.3) 0px 4px 24px 0px;
+
+  --font: Sora, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font);
+  background: var(--dark-navy);
+  color: var(--white);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-weight: 900;
+  letter-spacing: 0.015em;
+}
+
+h3 {
+  font-weight: 700;
+}
+
+a {
+  color: inherit;
+}
+
+/* ---- Header / nav ---- */
+.nav {
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 56px;
+  background: rgba(22, 27, 37, 0.8);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-elevated);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.nav .brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 900;
+  font-size: 18px;
+  letter-spacing: 0.02em;
+}
+.nav .brand .dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--emerald);
+  box-shadow: var(--shadow-floating);
+}
+.nav .links {
+  display: flex;
+  gap: 8px;
+}
+.nav .links a {
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  padding: 8px 12px;
+  text-decoration: none;
+  color: var(--white);
+  opacity: 0.85;
+}
+.nav .links a:hover {
+  color: var(--emerald);
+  opacity: 1;
+}
+
+/* ---- Layout shell ---- */
+.shell {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 48px 32px 96px;
+}
+
+.hero {
+  padding: 8px 0 40px;
+}
+.hero .eyebrow {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--emerald);
+  margin-bottom: 16px;
+}
+.hero h1 {
+  font-size: 51px;
+  line-height: 56px;
+  letter-spacing: 0.02em;
+  margin-bottom: 16px;
+}
+.hero p {
+  color: var(--medium-gray);
+  font-size: 16px;
+  line-height: 24px;
+  max-width: 640px;
+}
+.hero .accent {
+  color: var(--emerald);
+}
+
+/* ---- Cards / sections ---- */
+.card {
+  background: var(--near-black);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 28px 32px;
+  margin-bottom: 24px;
+}
+.card .card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.card .card-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(29, 185, 84, 0.12);
+  color: var(--emerald);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  flex: none;
+}
+.card h3 {
+  font-size: 20px;
+  line-height: 26px;
+}
+.card .card-sub {
+  color: var(--medium-gray);
+  font-size: 13px;
+  line-height: 19px;
+  margin: 0 0 20px 40px;
+}
+
+/* ---- Form controls ---- */
+label.field-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--medium-gray);
+  margin-bottom: 8px;
+}
+
+input[type="text"],
+input[type="password"],
+textarea {
+  width: 100%;
+  background: var(--white);
+  color: var(--charcoal);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 22px;
+  padding: 12px 16px;
+  border: 1px solid var(--pale-gray);
+  border-radius: 8px;
+  outline: none;
+}
+input[type="text"]:focus,
+input[type="password"]:focus,
+textarea:focus {
+  border-color: var(--emerald);
+  box-shadow: 0 0 0 3px rgba(29, 185, 84, 0.15);
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--medium-gray);
+}
+
+/* ---- Buttons ---- */
+.btn {
+  font-family: var(--font);
+  cursor: pointer;
+  border: 0;
+  border-radius: 50px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 21px;
+  padding: 12px 24px;
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: opacity 0.18s ease, box-shadow 0.18s ease;
+}
+.btn-primary {
+  background: var(--emerald);
+  color: var(--charcoal);
+  box-shadow: var(--shadow-floating);
+}
+.btn-primary:hover {
+  opacity: 0.9;
+  box-shadow: rgba(29, 185, 84, 0.4) 0px 6px 28px 0px;
+}
+.btn-primary:active {
+  opacity: 0.7;
+}
+.btn-primary:disabled {
+  background: var(--stone-gray);
+  color: var(--very-light-gray);
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--emerald);
+  border-radius: 6px;
+  height: auto;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.btn-ghost:hover {
+  background: rgba(29, 185, 84, 0.1);
+}
+
+/* ---- File / directory drop zones ---- */
+.dropzone {
+  border: 1.5px dashed rgba(255, 255, 255, 0.18);
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+.dropzone:hover {
+  border-color: var(--emerald);
+  background: rgba(29, 185, 84, 0.04);
+}
+.dropzone .dz-title {
+  font-weight: 600;
+  font-size: 14px;
+}
+.dropzone .dz-hint {
+  color: var(--medium-gray);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* ---- Badges ---- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(29, 185, 84, 0.1);
+  color: var(--emerald);
+  border: 1px solid var(--emerald);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  padding: 4px 10px;
+}
+.badge-solid {
+  background: var(--emerald);
+  color: var(--white);
+  border: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 6px 12px;
+}
+
+/* ---- Grid helpers ---- */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.beat-row {
+  display: grid;
+  grid-template-columns: 40px 1fr 1fr;
+  gap: 12px;
+  align-items: start;
+  margin-bottom: 12px;
+}
+.beat-row .beat-idx {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 18px;
+  color: var(--emerald);
+}
+
+/* ---- Progress ---- */
+.progress-wrap {
+  margin-top: 8px;
+}
+.progress-track {
+  height: 10px;
+  border-radius: 50px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--emerald);
+  box-shadow: var(--shadow-floating);
+  transition: width 0.25s ease;
+}
+.progress-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--medium-gray);
+  margin-top: 8px;
+}
+.log {
+  margin-top: 16px;
+  max-height: 180px;
+  overflow-y: auto;
+  font-family: "Courier New", monospace;
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: 0.03em;
+  color: var(--stone-gray);
+  background: var(--dark-navy);
+  border-radius: 8px;
+  padding: 12px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.log .ok {
+  color: var(--emerald);
+}
+.log .warn {
+  color: #f0a500;
+}
+.log .err {
+  color: var(--error);
+}
+
+/* ---- Alerts ---- */
+.alert {
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 13px;
+  line-height: 19px;
+  margin-bottom: 16px;
+}
+.alert-error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid var(--error);
+  color: #ffb4b4;
+}
+.alert-ok {
+  background: rgba(29, 185, 84, 0.1);
+  border: 1px solid var(--emerald);
+  color: var(--emerald);
+}
+
+/* ---- File list ---- */
+.file-list {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.file-chip {
+  font-size: 11px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  padding: 3px 8px;
+  color: var(--medium-gray);
+}
+
+/* ---- Result / preview ---- */
+.preview {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.preview video {
+  width: 270px;
+  aspect-ratio: 9 / 16;
+  border-radius: 16px;
+  background: #000;
+  border: 2px solid var(--emerald);
+}
+
+@media (max-width: 720px) {
+  .nav {
+    padding: 0 20px;
+  }
+  .nav .links {
+    display: none;
+  }
+  .shell {
+    padding: 32px 16px 64px;
+  }
+  .hero h1 {
+    font-size: 30px;
+    line-height: 36px;
+  }
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+  .beat-row {
+    grid-template-columns: 28px 1fr;
+  }
+  .beat-row .field-pair {
+    grid-column: 1 / -1;
+  }
+}
