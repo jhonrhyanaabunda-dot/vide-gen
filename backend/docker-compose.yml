@@ -11,15 +11,18 @@ services:
     ports:
       - "8000:8000"
     environment:
-      # Dev default. In production list your real origins instead of "*".
-      ALLOWED_ORIGINS: "http://localhost:3000"
+      # Set both in backend/.env (gitignored). Defaults keep local dev working.
+      ALLOWED_ORIGINS: "${ALLOWED_ORIGINS:-http://localhost:3000}"
+      # Required once the service is reachable from the internet (e.g. exposed
+      # through a Tailscale Funnel) — otherwise anyone with the URL can queue
+      # renders on this machine.
+      RENDER_API_KEY: "${RENDER_API_KEY:-}"
       WORK_DIR: /data/jobs
       MAX_UPLOAD_MB: "1024"
       JOB_TTL_SECONDS: "3600"
       MAX_CONCURRENT_RENDERS: "1"
       FFMPEG_PRESET: veryfast
       MUSIC_PAD_MODE: silence
-      # RENDER_API_KEY: change-me
     volumes:
       # Job scratch space. Renders are large and short-lived; a named volume
       # keeps them off the image layer and out of the repo.
