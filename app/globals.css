@@ -1,26 +1,50 @@
 /* Sora typeface (DESIGN.md primary font) */
-@import url("https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap");
+
+/* ===========================================================================
+   Reel Studio — workspace UI
+   ---------------------------------------------------------------------------
+   This is a tool people reopen daily, not a page they land on, so the layout
+   is a workspace: a thin top bar, the script editor as the primary surface,
+   and a sticky rail holding assets + the render action.
+
+   Colour discipline: emerald marks exactly three things — the primary action,
+   live/ready status, and focus. Everything else is greyscale. When the accent
+   is on every element it stops meaning anything.
+   =========================================================================== */
 
 :root {
+  /* Brand (DESIGN.md) */
   --emerald: #1db954;
-  --charcoal: #2c3038;
-  --dark-navy: #0b0d0f;
-  --near-black: #111214;
-  --white: #ffffff;
-  --light-gray: #f8f9fa;
-  --very-light-gray: #f0f1f3;
-  --pale-gray: #e5e7eb;
-  --stone-gray: #5a6170;
-  --medium-gray: #8a919c;
-  --error: #ef4444;
+  --emerald-dim: #178f42;
+  --emerald-wash: rgba(29, 185, 84, 0.12);
 
-  --shadow-subtle: rgba(0, 0, 0, 0.08) 0px 4px 16px 0px;
-  --shadow-raised: rgba(0, 0, 0, 0.12) 0px 8px 24px 0px;
-  --shadow-elevated: rgba(0, 0, 0, 0.3) 0px 4px 30px 0px;
-  --shadow-floating: rgba(29, 185, 84, 0.3) 0px 4px 24px 0px;
+  /* Surfaces — four steps, dark to light, so depth reads without borders */
+  --bg: #0a0b0d;
+  --surface: #101216;
+  --surface-2: #16191e;
+  --surface-3: #1d2127;
+
+  /* Hairlines */
+  --line: rgba(255, 255, 255, 0.07);
+  --line-strong: rgba(255, 255, 255, 0.14);
+
+  /* Text ramp */
+  --text: #f2f4f6;
+  --text-2: #9aa2ad;
+  --text-3: #666e7a;
+
+  /* Status */
+  --error: #ef4444;
+  --warn: #f0a500;
 
   --font: Sora, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
 }
 
 * {
@@ -32,9 +56,11 @@ body {
   margin: 0;
   padding: 0;
   font-family: var(--font);
-  background: var(--dark-navy);
-  color: var(--white);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 h1,
@@ -42,484 +68,705 @@ h2,
 h3,
 h4 {
   margin: 0;
-  font-weight: 900;
-  letter-spacing: 0.015em;
-}
-
-h3 {
-  font-weight: 700;
+  font-weight: 600;
+  /* Sora is already wide; positive tracking on headings makes it look stretched */
+  letter-spacing: -0.01em;
 }
 
 a {
   color: inherit;
 }
 
-/* ---- Header / nav ---- */
-.nav {
-  height: 68px;
+::selection {
+  background: rgba(29, 185, 84, 0.28);
+}
+
+/* ---- Top bar --------------------------------------------------------- */
+.topbar {
+  height: 52px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 56px;
-  background: rgba(22, 27, 37, 0.8);
-  backdrop-filter: blur(10px);
-  box-shadow: var(--shadow-elevated);
+  gap: 16px;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(10, 11, 13, 0.85);
+  backdrop-filter: blur(12px);
   position: sticky;
   top: 0;
   z-index: 50;
 }
-.nav .brand {
+.topbar .brand {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-weight: 900;
-  font-size: 18px;
-  letter-spacing: 0.02em;
+  gap: 9px;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: -0.01em;
 }
-.nav .brand .dot {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
+.topbar .brand .mark {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
   background: var(--emerald);
-  box-shadow: var(--shadow-floating);
-}
-.nav .links {
-  display: flex;
-  gap: 8px;
-}
-.nav .links a {
-  font-weight: 400;
-  font-size: 16px;
-  line-height: 24px;
-  padding: 8px 12px;
-  text-decoration: none;
-  color: var(--white);
-  opacity: 0.85;
-}
-.nav .links a:hover {
-  color: var(--emerald);
-  opacity: 1;
-}
-
-/* ---- Layout shell ---- */
-.shell {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 48px 32px 96px;
-}
-
-.hero {
-  padding: 8px 0 40px;
-}
-.hero .eyebrow {
-  display: inline-block;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--emerald);
-  margin-bottom: 16px;
-}
-.hero h1 {
-  font-size: 51px;
-  line-height: 56px;
-  letter-spacing: 0.02em;
-  margin-bottom: 16px;
-}
-.hero p {
-  color: var(--medium-gray);
-  font-size: 16px;
-  line-height: 24px;
-  max-width: 640px;
-}
-.hero .accent {
-  color: var(--emerald);
-}
-
-/* ---- Cards / sections ---- */
-.card {
-  background: var(--near-black);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 16px;
-  padding: 28px 32px;
-  margin-bottom: 24px;
-}
-.card .card-head {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
-}
-.card .card-num {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: rgba(29, 185, 84, 0.12);
-  color: var(--emerald);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  font-weight: 700;
-  flex: none;
-}
-.card h3 {
-  font-size: 20px;
-  line-height: 26px;
-}
-.card .card-sub {
-  color: var(--medium-gray);
-  font-size: 13px;
-  line-height: 19px;
-  margin: 0 0 20px 40px;
-}
-
-/* ---- Form controls ---- */
-label.field-label {
-  display: block;
+  display: grid;
+  place-items: center;
+  color: #06210f;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--medium-gray);
-  margin-bottom: 8px;
+}
+.topbar .spec {
+  color: var(--text-3);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
+/* ---- Status pill ----------------------------------------------------- */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 50px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 11.5px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-3);
+  flex: none;
+}
+.dot-live {
+  background: var(--emerald);
+  box-shadow: 0 0 0 3px rgba(29, 185, 84, 0.18);
+}
+.dot-warn {
+  background: var(--warn);
+}
+.dot-err {
+  background: var(--error);
+}
+
+/* ---- Workspace layout ------------------------------------------------ */
+.workspace {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 28px 24px 80px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 348px;
+  gap: 28px;
+  align-items: start;
+}
+.col-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.rail {
+  position: sticky;
+  top: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ---- Section ---------------------------------------------------------- */
+.section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.section-head h2 {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+/* A hairline that eats the remaining width — separates sections without
+   wrapping everything in another bordered box. */
+.section-head .rule {
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+.section-head .count {
+  font-size: 12px;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.section-head .count.done {
+  color: var(--emerald);
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 16px;
+}
+.rail .panel {
+  padding: 14px;
+}
+.panel-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 10px;
+}
+
+/* ---- Form controls ---------------------------------------------------- */
+/* Dark fields. White inputs on a dark shell are contrast bombs that pull the
+   eye away from whatever the user is actually meant to look at. */
 input[type="text"],
 input[type="password"],
 textarea {
   width: 100%;
-  background: var(--white);
-  color: var(--charcoal);
+  background: var(--surface-2);
+  color: var(--text);
   font-family: var(--font);
-  font-size: 14px;
-  line-height: 22px;
-  padding: 12px 16px;
-  border: 1px solid var(--pale-gray);
-  border-radius: 8px;
+  font-size: 13.5px;
+  line-height: 20px;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
   outline: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+input[type="text"]:hover,
+input[type="password"]:hover {
+  border-color: var(--line-strong);
 }
 input[type="text"]:focus,
 input[type="password"]:focus,
 textarea:focus {
   border-color: var(--emerald);
-  box-shadow: 0 0 0 3px rgba(29, 185, 84, 0.15);
+  background: var(--surface-3);
+  box-shadow: 0 0 0 3px rgba(29, 185, 84, 0.12);
 }
 input::placeholder,
 textarea::placeholder {
-  color: var(--medium-gray);
+  color: var(--text-3);
 }
 
-/* ---- Buttons ---- */
+/* Chrome paints autofilled fields with its own pale background and near-black
+   text, which is unreadable on a dark surface. There's no way to override
+   background-color directly, so flood it with an inset shadow instead. The
+   absurd transition delay keeps it from flashing through on focus. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--text);
+  -webkit-box-shadow: 0 0 0 1000px var(--surface-2) inset;
+  caret-color: var(--text);
+  transition: background-color 100000s ease-out 0s;
+}
+.beat input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px var(--surface) inset;
+}
+
+label.field-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 7px;
+}
+.hint {
+  color: var(--text-3);
+  font-size: 12px;
+  line-height: 17px;
+}
+.hint a {
+  color: var(--text-2);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.hint a:hover {
+  color: var(--emerald);
+}
+
+/* ---- Buttons ---------------------------------------------------------- */
 .btn {
   font-family: var(--font);
   cursor: pointer;
-  border: 0;
-  border-radius: 50px;
-  font-size: 14px;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  font-size: 13px;
   font-weight: 600;
-  line-height: 21px;
-  padding: 12px 24px;
-  height: 48px;
+  padding: 0 16px;
+  height: 36px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  transition: opacity 0.18s ease, box-shadow 0.18s ease;
+  gap: 7px;
+  white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 .btn-primary {
   background: var(--emerald);
-  color: var(--charcoal);
-  box-shadow: var(--shadow-floating);
+  color: #06210f;
 }
-.btn-primary:hover {
-  opacity: 0.9;
-  box-shadow: rgba(29, 185, 84, 0.4) 0px 6px 28px 0px;
+.btn-primary:hover:not(:disabled) {
+  background: #22cc5e;
 }
-.btn-primary:active {
-  opacity: 0.7;
+.btn-primary:active:not(:disabled) {
+  background: var(--emerald-dim);
 }
 .btn-primary:disabled {
-  background: var(--stone-gray);
-  color: var(--very-light-gray);
-  box-shadow: none;
+  background: var(--surface-3);
+  color: var(--text-2);
   cursor: not-allowed;
-  opacity: 0.6;
+}
+.btn-lg {
+  height: 44px;
+  width: 100%;
+  font-size: 14px;
+}
+.btn-quiet {
+  background: var(--surface-2);
+  border-color: var(--line);
+  color: var(--text-2);
+}
+.btn-quiet:hover:not(:disabled) {
+  background: var(--surface-3);
+  color: var(--text);
+  border-color: var(--line-strong);
 }
 .btn-ghost {
   background: transparent;
-  color: var(--emerald);
-  border-radius: 6px;
-  height: auto;
-  padding: 8px 14px;
-  font-size: 13px;
+  color: var(--text-2);
+  height: 30px;
+  padding: 0 10px;
+  font-size: 12px;
   font-weight: 500;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  border: 1px solid transparent;
+  font-family: var(--font);
 }
 .btn-ghost:hover {
-  background: rgba(29, 185, 84, 0.1);
+  background: var(--surface-3);
+  color: var(--text);
 }
 
-/* ---- File / directory drop zones ---- */
-.dropzone {
-  border: 1.5px dashed rgba(255, 255, 255, 0.18);
-  border-radius: 12px;
-  padding: 24px;
-  text-align: center;
-  background: rgba(255, 255, 255, 0.02);
-  cursor: pointer;
-  transition: border-color 0.18s ease, background 0.18s ease;
-}
-.dropzone:hover {
-  border-color: var(--emerald);
-  background: rgba(29, 185, 84, 0.04);
-}
-.dropzone .dz-title {
-  font-weight: 600;
-  font-size: 14px;
-}
-.dropzone .dz-hint {
-  color: var(--medium-gray);
-  font-size: 12px;
-  margin-top: 4px;
-}
-
-/* ---- Badges ---- */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(29, 185, 84, 0.1);
-  color: var(--emerald);
-  border: 1px solid var(--emerald);
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 16px;
-  padding: 4px 10px;
-}
-.badge-solid {
-  background: var(--emerald);
-  color: var(--white);
-  border: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 6px 12px;
-}
-
-/* ---- Grid helpers ---- */
-.grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-.beat-row {
-  display: grid;
-  grid-template-columns: 40px 1fr 1fr;
-  gap: 12px;
-  align-items: start;
-  margin-bottom: 12px;
-}
-.beat-row .beat-idx {
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 900;
-  font-size: 18px;
-  color: var(--emerald);
-}
-
-/* ---- Progress ---- */
-.progress-wrap {
-  margin-top: 8px;
-}
-.progress-track {
-  height: 10px;
-  border-radius: 50px;
-  background: rgba(255, 255, 255, 0.08);
-  overflow: hidden;
-}
-.progress-fill {
-  height: 100%;
-  background: var(--emerald);
-  box-shadow: var(--shadow-floating);
-  transition: width 0.25s ease;
-}
-.progress-meta {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  color: var(--medium-gray);
-  margin-top: 8px;
-}
-.log {
-  margin-top: 16px;
-  max-height: 180px;
-  overflow-y: auto;
-  font-family: "Courier New", monospace;
-  font-size: 12px;
-  line-height: 18px;
-  letter-spacing: 0.03em;
-  color: var(--stone-gray);
-  background: var(--dark-navy);
-  border-radius: 8px;
-  padding: 12px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-.log .ok {
-  color: var(--emerald);
-}
-.log .warn {
-  color: #f0a500;
-}
-.log .err {
-  color: var(--error);
-}
-
-/* ---- Alerts ---- */
-.alert {
-  border-radius: 8px;
-  padding: 12px 16px;
-  font-size: 13px;
-  line-height: 19px;
-  margin-bottom: 16px;
-}
-.alert-error {
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid var(--error);
-  color: #ffb4b4;
-}
-.alert-ok {
-  background: rgba(29, 185, 84, 0.1);
-  border: 1px solid var(--emerald);
-  color: var(--emerald);
-}
-
-/* ---- File list ---- */
-.file-list {
-  margin-top: 12px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.file-chip {
-  font-size: 11px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 4px;
-  padding: 3px 8px;
-  color: var(--medium-gray);
-}
-
-/* ---- Result / preview ---- */
-.preview {
-  display: flex;
-  gap: 24px;
-  align-items: flex-start;
-  flex-wrap: wrap;
-}
-.preview video {
-  width: 270px;
-  aspect-ratio: 9 / 16;
-  border-radius: 16px;
-  background: #000;
-  border: 2px solid var(--emerald);
-}
-
-/* ---- Render engine selector ---- */
+/* ---- Segmented control ------------------------------------------------ */
 .segmented {
   display: inline-flex;
-  border: 1px solid var(--stone-gray);
-  border-radius: 50px;
-  padding: 3px;
-  gap: 3px;
-  background: rgba(255, 255, 255, 0.03);
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 2px;
+  gap: 2px;
+  background: var(--surface-2);
 }
 .segmented button {
+  flex: 1;
   font-family: var(--font);
   font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--medium-gray);
+  font-weight: 500;
+  color: var(--text-2);
   background: transparent;
   border: 0;
-  border-radius: 50px;
-  padding: 6px 16px;
+  border-radius: 4px;
+  padding: 6px 4px;
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
 }
-.segmented button:hover:not(:disabled) {
-  color: var(--white);
+.segmented button:hover:not(:disabled):not([aria-pressed="true"]) {
+  background: var(--surface-3);
+  color: var(--text);
 }
 .segmented button[aria-pressed="true"] {
-  background: var(--emerald);
-  color: var(--charcoal);
+  background: var(--surface-3);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px var(--line-strong);
 }
 .segmented button:disabled {
   cursor: not-allowed;
-  opacity: 0.5;
+  color: var(--text-3);
+  opacity: 0.55;
 }
 
-.badge-warn {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ffb4b4;
-  border-color: var(--error);
-}
-.badge-muted {
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--medium-gray);
-  border-color: var(--stone-gray);
-}
-
-.engine-row {
+/* ---- Asset picker rows ------------------------------------------------ */
+/* Compact rows, not 100px dashed dropzones. The folder count is the thing
+   worth seeing at a glance once a folder is chosen. */
+.picker {
   display: flex;
   align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 20px;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--font);
+  color: var(--text);
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
-.engine-row .engine-label {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--medium-gray);
+.picker:hover {
+  border-color: var(--line-strong);
+  background: var(--surface-3);
+}
+.picker.filled {
+  border-color: rgba(29, 185, 84, 0.35);
+}
+.picker .glyph {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border-radius: var(--r-sm);
+  background: var(--surface-3);
+  display: grid;
+  place-items: center;
+  color: var(--text-3);
+}
+.picker.filled .glyph {
+  background: var(--emerald-wash);
+  color: var(--emerald);
+}
+.picker .body {
+  min-width: 0;
+  flex: 1;
+  display: block;
+}
+.picker .t,
+.picker .s {
+  display: block;
+}
+.picker .t {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.picker .s {
+  font-size: 11.5px;
+  color: var(--text-3);
+  line-height: 16px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.picker-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-@media (max-width: 720px) {
-  .nav {
-    padding: 0 20px;
+/* ---- Drop targets ------------------------------------------------------ */
+.picker.dropping {
+  border-color: var(--emerald);
+  background: var(--emerald-wash);
+}
+.picker.dropping .glyph {
+  background: var(--emerald-wash);
+  color: var(--emerald);
+}
+
+/* ---- Beat editor ------------------------------------------------------- */
+/* One dense grid. The whole script should be readable without scrolling. */
+.beats {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: var(--surface);
+  transition: border-color 0.15s ease;
+}
+.beats.dropping {
+  border-color: var(--emerald);
+}
+
+/* Toolbar strip: says the table takes a drop, and holds the browse fallback. */
+.beats-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 8px 6px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+}
+.beats-bar .s {
+  font-size: 11.5px;
+  color: var(--text-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Covers the table while a file is over it, so the drop zone is unmistakable
+   without every row having to change appearance. */
+.drop-veil {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(10, 11, 13, 0.86);
+  border-radius: var(--r-lg);
+  color: var(--emerald);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+}
+.beat {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) minmax(0, 1.15fr);
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+.beat:last-child {
+  border-bottom: 0;
+}
+.beat:focus-within {
+  background: var(--surface-2);
+}
+.beat .idx {
+  display: grid;
+  place-items: center;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-3);
+  align-self: stretch;
+  background: var(--surface-2);
+  border-right: 1px solid var(--line);
+  margin: -8px 0;
+  padding: 0 4px;
+}
+.beat.filled .idx {
+  color: var(--emerald);
+}
+.beat input {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 7px 9px;
+}
+.beat input:hover {
+  border-color: var(--line);
+  background: var(--surface-2);
+}
+.beat input:focus {
+  border-color: var(--emerald);
+  background: var(--surface-2);
+}
+.beat input.h {
+  font-weight: 600;
+}
+
+/* ---- Closing preview --------------------------------------------------- */
+/* Asset stack + fallback thumbnail. The thumbnail is centred against the whole
+   stack rather than sitting next to one row, so its height can't open a gap. */
+.assets {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+}
+.slide-frame {
+  margin: 0;
+  flex: none;
+}
+.slide-frame > div {
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  border: 1px solid var(--line);
+}
+.slide-frame figcaption {
+  margin-top: 6px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  text-align: center;
+}
+
+/* ---- Meter / progress -------------------------------------------------- */
+.meter {
+  height: 4px;
+  border-radius: 50px;
+  background: var(--surface-3);
+  overflow: hidden;
+}
+.meter-fill {
+  height: 100%;
+  background: var(--emerald);
+  transition: width 0.3s ease;
+}
+.meter-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--text-2);
+  margin-top: 9px;
+}
+.meter-meta .pct {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  font-weight: 600;
+  flex: none;
+}
+.meter-meta .lbl {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.console {
+  margin-top: 12px;
+  max-height: 190px;
+  overflow-y: auto;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 17px;
+  color: var(--text-3);
+  background: var(--bg);
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line);
+  padding: 10px;
+}
+.console div {
+  display: flex;
+  gap: 8px;
+}
+.console .g {
+  flex: none;
+  width: 9px;
+  color: var(--text-3);
+}
+.console .ok .g {
+  color: var(--emerald);
+}
+.console .warn {
+  color: var(--warn);
+}
+.console .warn .g {
+  color: var(--warn);
+}
+.console .err {
+  color: #ff8a8a;
+}
+.console .err .g {
+  color: var(--error);
+}
+
+/* ---- Alerts ------------------------------------------------------------ */
+.alert {
+  border-radius: var(--r-sm);
+  padding: 10px 12px;
+  font-size: 12.5px;
+  line-height: 18px;
+  border: 1px solid;
+}
+.alert-error {
+  background: rgba(239, 68, 68, 0.09);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #ffb4b4;
+}
+.alert-ok {
+  background: var(--emerald-wash);
+  border-color: rgba(29, 185, 84, 0.4);
+  color: #7fe3a1;
+}
+
+/* ---- File chips -------------------------------------------------------- */
+.chips {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  max-height: 76px;
+  overflow-y: auto;
+}
+.chip {
+  font-size: 11px;
+  font-family: var(--mono);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 2px 6px;
+  color: var(--text-3);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---- Result ------------------------------------------------------------ */
+.result video {
+  width: 100%;
+  border-radius: var(--r-md);
+  background: #000;
+  display: block;
+  border: 1px solid var(--line);
+}
+
+/* ---- Responsive -------------------------------------------------------- */
+@media (max-width: 1040px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
   }
-  .nav .links {
+  .rail {
+    position: static;
+  }
+}
+@media (max-width: 680px) {
+  .assets {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .slide-frame {
     display: none;
   }
-  .shell {
-    padding: 32px 16px 64px;
+  .topbar {
+    padding: 0 16px;
   }
-  .hero h1 {
-    font-size: 30px;
-    line-height: 36px;
+  .topbar .spec {
+    display: none;
   }
-  .grid-2 {
-    grid-template-columns: 1fr;
+  .workspace {
+    padding: 20px 16px 64px;
+    gap: 22px;
   }
-  .beat-row {
-    grid-template-columns: 28px 1fr;
+  .beat {
+    grid-template-columns: 32px minmax(0, 1fr);
+    row-gap: 4px;
+    padding-bottom: 10px;
   }
-  .beat-row .field-pair {
-    grid-column: 1 / -1;
-  }
-}
-
-@media (max-width: 720px) {
-  .segmented {
-    width: 100%;
-    justify-content: space-between;
-  }
-  .segmented button {
-    flex: 1;
-    padding: 8px 10px;
+  .beat .idx {
+    grid-row: span 2;
   }
 }

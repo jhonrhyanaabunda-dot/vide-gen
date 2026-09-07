@@ -5,6 +5,7 @@ import DirectoryPicker from "@/components/DirectoryPicker";
 import ClosingFrameSelector from "@/components/ClosingFrameSelector";
 import ApiKeyInput from "@/components/ApiKeyInput";
 import ScriptInput from "@/components/ScriptInput";
+import ClosingSlide from "@/components/ClosingSlide";
 import ProgressPanel, { type LogLine } from "@/components/ProgressPanel";
 import { buildRenderPlan } from "@/lib/selection";
 import { renderReel, triggerDownload } from "@/lib/render";
@@ -35,15 +36,15 @@ export default function Page() {
   const [apiKey, setApiKey] = useState("");
   const [beats, setBeats] = useState<Beat[]>(emptyBeats);
 
+  const [renderMode, setRenderMode] = useState<RenderMode>("auto");
+  const [health, setHealth] = useState<BackendHealth | null>(null);
+
   const [rendering, setRendering] = useState(false);
   const [percent, setPercent] = useState(0);
   const [label, setLabel] = useState("");
   const [logs, setLogs] = useState<LogLine[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [resultUrl, setResultUrl] = useState<string | null>(null);
-
-  const [renderMode, setRenderMode] = useState<RenderMode>("auto");
-  const [health, setHealth] = useState<BackendHealth | null>(null);
 
   // Cross-origin isolation can only be read in the browser; defer to after mount
   // so server and client render the same markup (avoids hydration mismatch).
@@ -67,6 +68,8 @@ export default function Page() {
   const engine: "server" | "browser" =
     renderMode === "server" ? "server" : renderMode === "browser" ? "browser" : backendUp ? "server" : "browser";
 
+  const filledBeats = beats.filter((b) => b.header.trim()).length;
+
   const logId = useMemo(() => ({ n: 0 }), []);
   const pushProgress = useCallback(
     (u: ProgressUpdate) => {
@@ -78,11 +81,10 @@ export default function Page() {
   );
 
   const validate = (): string | null => {
-    if (!apiKey.trim()) return "Please enter your Gemini API key.";
-    if (sourceVideos.length === 0) return "Select a Source Videos folder — it appears empty.";
-    const filledBeats = beats.filter((b) => b.header.trim()).length;
+    if (!apiKey.trim()) return "Add your Gemini API key.";
+    if (sourceVideos.length === 0) return "Choose a source videos folder — none selected.";
     if (filledBeats < NUM_BEATS)
-      return `All ${NUM_BEATS} beats need a Header Text (you've filled ${filledBeats}).`;
+      return `All ${NUM_BEATS} beats need a header (${filledBeats} filled).`;
     if (engine === "server" && !isBackendConfigured())
       return "Server rendering is selected but NEXT_PUBLIC_RENDER_BACKEND_URL isn't set. Switch to Browser, or configure the render service.";
     // FFmpeg.wasm needs SharedArrayBuffer; the MoviePy service does not.
@@ -90,6 +92,10 @@ export default function Page() {
       return "This page isn't cross-origin isolated, so FFmpeg.wasm can't run. Make sure the COOP/COEP headers from next.config.js are active (they are on Vercel and on `next dev`).";
     return null;
   };
+
+  // Shown under the button so the user knows what's missing before clicking,
+  // rather than discovering it as an error afterwards.
+  const blocker = mounted && !rendering ? validate() : null;
 
   const handleRender = async () => {
     setError(null);
@@ -143,166 +149,162 @@ export default function Page() {
     }
   };
 
+  const enginePill = () => {
+    if (!mounted) return null;
+    if (engine === "server") {
+      return (
+        <span className="pill" title={health?.ffmpeg ?? undefined}>
+          <span className="dot dot-live" />
+          MoviePy {health?.moviepy}
+        </span>
+      );
+    }
+    return (
+      <span className="pill">
+        <span className={coiWarning ? "dot dot-err" : "dot dot-live"} />
+        {coiWarning ? "Not isolated" : "In-browser"}
+      </span>
+    );
+  };
+
   return (
-    <main className="shell">
-      <section className="hero" id="workflow">
-        <span className="eyebrow">Automotive Reel Studio</span>
-        <h1>
-          Raw clips in. <span className="accent">30-second Reels out.</span>
-        </h1>
-        <p>
-          Point at your footage and music folders, drop in a 6-beat script, and the
-          studio uses AI to pick the best clips, cut them to a vertical 9:16 Reel,
-          burn in on-brand captions, sync your music, and cap it with your dealership
-          CTA — rendered in your browser or on the MoviePy render service.
-        </p>
-      </section>
-
-      {/* 1. Assets */}
-      <section className="card">
-        <div className="card-head">
-          <span className="card-num">1</span>
-          <h3>Select your asset folders</h3>
+    <>
+      <header className="topbar">
+        <div className="brand">
+          <span className="mark">R</span>
+          Reel Studio
         </div>
-        <p className="card-sub">
-          Folders stay on your machine — only filenames (and, when needed, low-res
-          frames) are sent to the AI.
-        </p>
-        <div className="grid-2">
-          <DirectoryPicker
-            label="Source Videos Folder"
-            hint="Raw dealership clips (.mp4, .mov, .webm…)"
-            accept="video"
-            files={sourceVideos}
-            onPick={setSourceVideos}
-          />
-          <DirectoryPicker
-            label="Music Folder"
-            hint="Background tracks (.mp3, .wav, .m4a…)"
-            accept="audio"
-            files={musicTracks}
-            onPick={setMusicTracks}
-          />
+        <div className="topbar-right">
+          <span className="spec">1080×1920 · 30s</span>
+          {enginePill()}
         </div>
-      </section>
+      </header>
 
-      {/* 2. API key */}
-      <section className="card">
-        <div className="card-head">
-          <span className="card-num">2</span>
-          <h3>Connect AI for smart clip selection</h3>
-        </div>
-        <p className="card-sub">
-          Powers filename matching and vision scanning. Runs on Google Gemini —
-          the free tier is plenty for this.
-        </p>
-        <ApiKeyInput value={apiKey} onChange={setApiKey} />
-      </section>
-
-      {/* 3. Script */}
-      <section className="card" id="script">
-        <div className="card-head">
-          <span className="card-num">3</span>
-          <h3>Write your 6-beat script</h3>
-        </div>
-        <p className="card-sub">
-          Exactly six beats. Each becomes ~4 seconds of the Reel with its caption
-          burned in. A 7th closing beat is added automatically.
-        </p>
-        <ScriptInput beats={beats} onChange={setBeats} />
-      </section>
-
-      {/* 4. Closing frame */}
-      <section className="card">
-        <div className="card-head">
-          <span className="card-num">4</span>
-          <h3>Closing frame (7th beat)</h3>
-        </div>
-        <p className="card-sub">Your call-to-action. Upload one, or use the generated slide.</p>
-        <ClosingFrameSelector file={closingFile} onPick={setClosingFile} />
-      </section>
-
-      {/* 5. Render */}
-      <section className="card" id="render">
-        <div className="card-head">
-          <span className="card-num">5</span>
-          <h3>Render &amp; download</h3>
-        </div>
-        <p className="card-sub">
-          {engine === "server"
-            ? "Rendering runs on the MoviePy service — your machine only uploads the clips it needs."
-            : "Everything is processed locally with FFmpeg.wasm."}{" "}
-          The .mp4 downloads automatically when finished.
-        </p>
-
-        {error && <div className="alert alert-error">{error}</div>}
-
-        <div className="engine-row">
-          <span className="engine-label">Render engine</span>
-          <div className="segmented" role="group" aria-label="Render engine">
-            {(["auto", "server", "browser"] as const).map((mode) => (
-              <button
-                key={mode}
-                type="button"
-                aria-pressed={renderMode === mode}
-                disabled={rendering || (mode === "server" && !isBackendConfigured())}
-                title={
-                  mode === "server" && !isBackendConfigured()
-                    ? "Set NEXT_PUBLIC_RENDER_BACKEND_URL to enable the MoviePy service"
-                    : undefined
-                }
-                onClick={() => setRenderMode(mode)}
-              >
-                {mode === "auto" ? "Auto" : mode === "server" ? "MoviePy server" : "Browser"}
-              </button>
-            ))}
-          </div>
-          {mounted && renderMode === "auto" && (
-            <span className="badge badge-muted">
-              → {engine === "server" ? "MoviePy server" : "Browser (FFmpeg.wasm)"}
-            </span>
-          )}
-        </div>
-
-        <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-          <button className="btn btn-primary" disabled={rendering} onClick={handleRender}>
-            {rendering ? "Rendering…" : "▶ Render Video"}
-          </button>
-          <span className="badge">9:16 · 30s · 1080×1920</span>
-          {mounted && isBackendConfigured() && (
-            <span className={backendUp ? "badge" : "badge badge-warn"}>
-              {backendUp
-                ? `● MoviePy ${health?.moviepy ?? ""} online`
-                : "⚠ Render service unreachable"}
-            </span>
-          )}
-          {coiWarning && engine === "browser" && (
-            <span className="badge badge-warn">⚠ Not cross-origin isolated</span>
-          )}
-        </div>
-
-        {(rendering || logs.length > 0) && (
-          <ProgressPanel percent={percent} label={label} logs={logs} />
-        )}
-
-        {resultUrl && (
-          <div style={{ marginTop: 24 }}>
-            <div className="alert alert-ok">Reel ready — your download should have started.</div>
-            <div className="preview">
-              <video src={resultUrl} controls playsInline />
-              <div>
-                <button className="btn btn-primary" onClick={() => triggerDownload(resultUrl!)}>
-                  ⤓ Download again
-                </button>
-              </div>
+      <main className="workspace">
+        {/* ---------------- Work column ---------------- */}
+        <div className="col-main">
+          <section>
+            <div className="section-head">
+              <h2>Assets</h2>
+              <span className="rule" />
+              {sourceVideos.length > 0 && (
+                <span className="count done">{sourceVideos.length} clips</span>
+              )}
             </div>
-          </div>
-        )}
-      </section>
+            <div className="panel assets">
+              <div className="picker-stack">
+                <DirectoryPicker
+                  label="Source videos"
+                  hint="Raw dealership clips — mp4, mov, webm"
+                  accept="video"
+                  files={sourceVideos}
+                  onPick={setSourceVideos}
+                />
+                <DirectoryPicker
+                  label="Music"
+                  hint="Background tracks — mp3, wav, m4a"
+                  accept="audio"
+                  files={musicTracks}
+                  onPick={setMusicTracks}
+                />
+                <ClosingFrameSelector file={closingFile} onPick={setClosingFile} />
+              </div>
+              {!closingFile && (
+                <figure className="slide-frame">
+                  <ClosingSlide />
+                  <figcaption>closing slide</figcaption>
+                </figure>
+              )}
+            </div>
+          </section>
 
-      <footer style={{ textAlign: "center", color: "var(--medium-gray)", fontSize: 12, marginTop: 40 }}>
-        Built with Next.js · MoviePy render service · FFmpeg.wasm fallback.
-      </footer>
-    </main>
+          <section>
+            <div className="section-head">
+              <h2>Script</h2>
+              <span className="rule" />
+              <span className={filledBeats === NUM_BEATS ? "count done" : "count"}>
+                {filledBeats} / {NUM_BEATS} beats
+              </span>
+            </div>
+            <ScriptInput beats={beats} onChange={setBeats} />
+            <p className="hint" style={{ marginTop: 10 }}>
+              Each beat becomes ~4s with its caption burned in — e.g. “0% APR THIS
+              WEEK” / “on all 2024 models”. A 7th closing beat is appended
+              automatically.
+            </p>
+          </section>
+        </div>
+
+        {/* ---------------- Action rail ---------------- */}
+        <aside className="rail">
+          <div className="panel">
+            <div className="panel-title">Gemini key</div>
+            <ApiKeyInput value={apiKey} onChange={setApiKey} />
+          </div>
+
+          <div className="panel">
+            <div className="panel-title">Render</div>
+
+            <div className="segmented" role="group" aria-label="Render engine">
+              {(["auto", "server", "browser"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  aria-pressed={renderMode === mode}
+                  disabled={rendering || (mode === "server" && !isBackendConfigured())}
+                  title={
+                    mode === "server" && !isBackendConfigured()
+                      ? "Set NEXT_PUBLIC_RENDER_BACKEND_URL to enable the MoviePy service"
+                      : undefined
+                  }
+                  onClick={() => setRenderMode(mode)}
+                >
+                  {mode === "auto" ? "Auto" : mode === "server" ? "Server" : "Browser"}
+                </button>
+              ))}
+            </div>
+
+            <button
+              className="btn btn-primary btn-lg"
+              style={{ marginTop: 12 }}
+              disabled={rendering || !!blocker}
+              onClick={handleRender}
+            >
+              {rendering ? "Rendering…" : "Render video"}
+            </button>
+
+            {blocker && !error && (
+              <p className="hint" style={{ marginTop: 9 }}>
+                {blocker}
+              </p>
+            )}
+
+            {error && (
+              <div className="alert alert-error" style={{ marginTop: 10 }}>
+                {error}
+              </div>
+            )}
+
+            {(rendering || logs.length > 0) && (
+              <ProgressPanel percent={percent} label={label} logs={logs} />
+            )}
+          </div>
+
+          {resultUrl && (
+            <div className="panel result">
+              <div className="panel-title">Result</div>
+              <video src={resultUrl} controls playsInline />
+              <button
+                className="btn btn-quiet"
+                style={{ width: "100%", marginTop: 10 }}
+                onClick={() => triggerDownload(resultUrl)}
+              >
+                Download again
+              </button>
+            </div>
+          )}
+        </aside>
+      </main>
+    </>
   );
 }

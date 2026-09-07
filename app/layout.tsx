@@ -12,22 +12,11 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // The top bar lives in page.tsx: it reflects render-engine and key state, so
+  // it needs the client state rather than being static chrome up here.
   return (
     <html lang="en">
-      <body>
-        <nav className="nav">
-          <div className="brand">
-            <span className="dot" />
-            REEL STUDIO
-          </div>
-          <div className="links">
-            <a href="#workflow">WHAT WE DO</a>
-            <a href="#script">SCRIPT</a>
-            <a href="#render">RENDER</a>
-          </div>
-        </nav>
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

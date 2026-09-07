@@ -5,9 +5,9 @@ import { useEffect, useState } from "react";
 const STORAGE_KEY = "reel-studio-gemini-key";
 
 /**
- * Secure-ish Gemini API key field. Masked by default, persisted to localStorage
- * so the user doesn't retype it each session. (Note: localStorage is readable by
- * any script on this origin — fine for a personal tool, not for shared machines.)
+ * Gemini API key field. Masked by default, persisted to localStorage so the
+ * user doesn't retype it each session. (Note: localStorage is readable by any
+ * script on this origin — fine for a personal tool, not for shared machines.)
  */
 export default function ApiKeyInput({
   value,
@@ -33,33 +33,37 @@ export default function ApiKeyInput({
 
   return (
     <div>
-      <label className="field-label">Gemini API Key</label>
-      <div style={{ display: "flex", gap: 8 }}>
+      <div style={{ display: "flex", gap: 6 }}>
         <input
           type={show ? "text" : "password"}
+          aria-label="Gemini API key"
           placeholder="AIza…"
           value={value}
           onChange={(e) => handle(e.target.value)}
-          autoComplete="off"
+          name="gemini-api-key"
+          // "new-password" (not "off", which Chrome ignores here) stops this
+          // being treated as a login password — otherwise Chrome hunts for a
+          // username field and autofills an email into the script captions.
+          autoComplete="new-password"
+          data-1p-ignore=""
+          data-lpignore="true"
           spellCheck={false}
         />
         <button
           type="button"
           className="btn-ghost"
-          style={{ whiteSpace: "nowrap" }}
+          style={{ flex: "none" }}
           onClick={() => setShow((s) => !s)}
         >
           {show ? "Hide" : "Show"}
         </button>
       </div>
-      <div className="dz-hint" style={{ marginTop: 6 }}>
-        Free key from{" "}
-        <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" style={{ color: "var(--emerald)" }}>
-          aistudio.google.com
+      <p className="hint" style={{ marginTop: 7 }}>
+        Stored in this browser only.{" "}
+        <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer">
+          Get a free key
         </a>
-        . Used only for AI clip matching &amp; vision scanning; stored locally in
-        this browser.
-      </div>
+      </p>
     </div>
   );
 }

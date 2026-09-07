@@ -1,11 +1,12 @@
 "use client";
 
 /**
- * React-rendered placeholder for the 7th beat (closing frame) shown in the
- * dashboard when no closing file is uploaded. The same layout is reproduced on
- * canvas by lib/overlay.ts:makeClosingSlide() for the actual rendered video.
+ * Thumbnail of the 7th beat (closing frame) shown when no closing file is
+ * uploaded. The same layout is reproduced on canvas by
+ * lib/overlay.ts:makeClosingSlide() for the actual rendered video, and again in
+ * Pillow by the render service — this is the preview of that.
  */
-export default function ClosingSlide({ scale = 0.14 }: { scale?: number }) {
+export default function ClosingSlide({ scale = 0.062 }: { scale?: number }) {
   const W = 1080 * scale;
   const H = 1920 * scale;
   return (
@@ -13,47 +14,42 @@ export default function ClosingSlide({ scale = 0.14 }: { scale?: number }) {
       style={{
         width: W,
         height: H,
-        borderRadius: 16,
         background:
-          "radial-gradient(circle at 50% 38%, rgba(29,185,84,0.22), rgba(11,13,15,0) 60%), #0B0D0F",
-        border: "2px solid var(--emerald)",
+          "radial-gradient(circle at 50% 38%, rgba(29,185,84,0.2), rgba(11,13,15,0) 62%), #0B0D0F",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        gap: 14,
-        padding: 16,
+        gap: 6,
+        padding: 8,
         textAlign: "center",
         overflow: "hidden",
       }}
     >
       <div
         style={{
-          width: "55%",
+          width: "56%",
           aspectRatio: "1 / 1",
-          border: "2px dashed var(--emerald)",
-          borderRadius: 10,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "var(--medium-gray)",
-          fontSize: 9,
-          fontWeight: 700,
-          background: "rgba(255,255,255,0.04)",
+          border: "1px dashed rgba(29,185,84,0.7)",
+          borderRadius: 4,
+          background: "rgba(255,255,255,0.03)",
         }}
-      >
-        [ LOGO HERE ]
-      </div>
-      <div style={{ fontWeight: 900, fontSize: 13, color: "#fff" }}>
-        [ DEALERSHIP NAME ]
+      />
+      <div style={{ fontWeight: 600, fontSize: 6, color: "#fff", letterSpacing: "0.02em" }}>
+        [ DEALERSHIP ]
       </div>
       <div
-        className="badge-solid"
-        style={{ fontSize: 8, borderRadius: 50, padding: "5px 12px" }}
+        style={{
+          background: "var(--emerald)",
+          color: "#06210f",
+          fontSize: 4.5,
+          fontWeight: 700,
+          borderRadius: 50,
+          padding: "3px 8px",
+        }}
       >
-        BOOK A STRATEGY CALL
+        BOOK A CALL
       </div>
-      <div style={{ fontSize: 8, color: "#C7CCD4" }}>[ Phone · Website ]</div>
     </div>
   );
 }

@@ -5,8 +5,9 @@ import type { ProgressUpdate } from "@/lib/types";
 export type LogLine = ProgressUpdate & { id: number };
 
 /**
- * Detailed progress display: a brand-emerald progress bar plus a scrolling,
- * color-coded log — essential feedback for long client-side renders.
+ * Progress readout for a render: a thin meter, the current step, and the
+ * scrolling log. The log matters more than it looks — a render runs for
+ * minutes, and the step names are how you tell a slow render from a stuck one.
  */
 export default function ProgressPanel({
   percent,
@@ -18,20 +19,31 @@ export default function ProgressPanel({
   logs: LogLine[];
 }) {
   return (
-    <div className="progress-wrap">
-      <div className="progress-track">
-        <div className="progress-fill" style={{ width: `${Math.min(100, Math.max(0, percent))}%` }} />
+    <div style={{ marginTop: 14 }}>
+      <div className="meter">
+        <div
+          className="meter-fill"
+          style={{ width: `${Math.min(100, Math.max(0, percent))}%` }}
+        />
       </div>
-      <div className="progress-meta">
-        <span>{label}</span>
-        <span>{Math.round(percent)}%</span>
+      <div className="meter-meta">
+        <span className="lbl">{label}</span>
+        <span className="pct">{Math.round(percent)}%</span>
       </div>
+
       {logs.length > 0 && (
-        <div className="log">
+        <div className="console">
           {logs.map((l) => (
-            <div key={l.id} className={l.level === "ok" ? "ok" : l.level === "warn" ? "warn" : l.level === "err" ? "err" : ""}>
-              {l.level === "ok" ? "✓ " : l.level === "warn" ? "! " : l.level === "err" ? "✗ " : "› "}
-              {l.label}
+            <div
+              key={l.id}
+              className={
+                l.level === "ok" ? "ok" : l.level === "warn" ? "warn" : l.level === "err" ? "err" : ""
+              }
+            >
+              <span className="g">
+                {l.level === "ok" ? "+" : l.level === "warn" ? "!" : l.level === "err" ? "x" : "-"}
+              </span>
+              <span>{l.label}</span>
             </div>
           ))}
         </div>
