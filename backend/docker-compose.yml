@@ -5,6 +5,9 @@
 services:
   render:
     build: .
+    # Comes back after a reboot or a Docker Desktop restart, so the local
+    # backend is just there rather than something to remember to start.
+    restart: unless-stopped
     ports:
       - "8000:8000"
     environment:
