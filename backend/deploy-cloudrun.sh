@@ -2,10 +2,11 @@
 #
 # Deploy the MoviePy render service to Cloud Run.
 #
-#   ./deploy-cloudrun.sh PROJECT_ID [REGION]
+#   ./deploy-cloudrun.sh PROJECT_ID [REGION]           # free-tier config (default)
+#   BILLING=instance ./deploy-cloudrun.sh PROJECT_ID   # robust config, always billed
 #
 # Builds with Cloud Build (native amd64 — no slow local cross-build) and
-# deploys. Prints the service URL to put in NEXT_PUBLIC_RENDER_BACKEND_URL.
+# deploys. Prints the service URL for NEXT_PUBLIC_RENDER_BACKEND_URL.
 set -euo pipefail
 
 PROJECT="${1:?Usage: ./deploy-cloudrun.sh PROJECT_ID [REGION]}"
@@ -16,15 +17,31 @@ SERVICE="reel-render"
 # 4.5 MB body cap makes proxying impossible), so CORS must name the frontend.
 ALLOWED_ORIGINS="${ALLOWED_ORIGINS:-https://vide-gen-beige.vercel.app,http://localhost:3000}"
 
-# Cloud Run's container filesystem is IN-MEMORY: every uploaded byte counts
-# against the memory limit. Budget = uploads + ffmpeg/MoviePy working set +
-# the output file. 8Gi comfortably covers a 2 GB upload; drop MAX_UPLOAD_MB
-# with the memory if you size down.
-MEMORY="${MEMORY:-8Gi}"
-CPU="${CPU:-4}"
-MAX_UPLOAD_MB="${MAX_UPLOAD_MB:-2048}"
+# --- billing mode ----------------------------------------------------------
+# request  (default): CPU allocated only while a request is in flight. This is
+#          the ONLY mode Cloud Run's monthly free tier applies to. It works
+#          here because the browser holds the /events SSE stream open for the
+#          whole render, which keeps a request in flight and therefore keeps
+#          the CPU allocated. If that stream drops, the client falls back to
+#          1s polling and the render will crawl — see README.
+# instance: CPU always allocated (--no-cpu-throttling). Immune to the above,
+#          but billed for the instance's whole lifetime and NOT free-tier
+#          eligible.
+BILLING="${BILLING:-request}"
 
-echo "→ deploying $SERVICE to $PROJECT / $REGION"
+if [ "$BILLING" = "instance" ]; then
+  CPU_FLAG="--no-cpu-throttling"
+  MEMORY="${MEMORY:-8Gi}"; CPU="${CPU:-4}"; MAX_UPLOAD_MB="${MAX_UPLOAD_MB:-2048}"
+else
+  CPU_FLAG="--cpu-throttling"
+  # Smaller footprint stretches the free tier much further: the allowance is
+  # 180k GiB-seconds/month, so 2Gi buys ~4x the render-minutes that 8Gi does.
+  # The container filesystem is in-memory, so MAX_UPLOAD_MB must stay well
+  # under MEMORY — uploads, ffmpeg's working set and the output all live in RAM.
+  MEMORY="${MEMORY:-2Gi}"; CPU="${CPU:-2}"; MAX_UPLOAD_MB="${MAX_UPLOAD_MB:-512}"
+fi
+
+echo "→ deploying $SERVICE to $PROJECT / $REGION  (billing: $BILLING, ${CPU} vCPU / ${MEMORY})"
 
 gcloud run deploy "$SERVICE" \
   --project "$PROJECT" \
@@ -36,10 +53,10 @@ gcloud run deploy "$SERVICE" \
   --memory "$MEMORY" \
   --cpu "$CPU" \
   --min-instances 0 \
-  --max-instances 3 \
+  --max-instances 1 \
   --timeout 3600 \
-  --concurrency 1 \
-  --no-cpu-throttling \
+  --concurrency 4 \
+  $CPU_FLAG \
   --set-env-vars "ALLOWED_ORIGINS=${ALLOWED_ORIGINS},MAX_UPLOAD_MB=${MAX_UPLOAD_MB},MAX_CONCURRENT_RENDERS=1,FFMPEG_PRESET=veryfast,WORK_DIR=/tmp/reel-studio,JOB_TTL_SECONDS=1800"
 
 URL="$(gcloud run services describe "$SERVICE" --project "$PROJECT" --region "$REGION" --format='value(status.url)')"

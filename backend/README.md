@@ -141,6 +141,31 @@ renders a few reels a week, and an always-on 2 vCPU/4 GB container elsewhere
 bills continuously for an idle box. Its request timeout also goes to 60
 minutes, so no render can outrun it.
 
+### Free tier
+
+Cloud Run's monthly free tier (2M requests, 360k vCPU-seconds, 180k GiB-seconds)
+covers this workload comfortably — at the default `2 vCPU / 2Gi`, a two-minute
+render costs ~240 vCPU-s and ~240 GiB-s, so the allowance is worth hundreds of
+reels a month. `deploy-cloudrun.sh` uses the free-tier-eligible configuration by
+default.
+
+Two caveats, stated plainly:
+
+- **Google still requires a billing account with a card**, even to stay inside
+  the free tier. Usage beyond it bills you.
+- **The free tier only applies to request-based billing**, which means CPU is
+  allocated *only while a request is in flight*. This service renders on a
+  background thread, so that would normally throttle the render to a crawl. It
+  works here because the browser holds the `/events` SSE stream open for the
+  entire render, which keeps a request in flight. **If that stream drops**, the
+  client falls back to 1-second polling and the render will slow to a stutter.
+  If you hit that, redeploy with `BILLING=instance` — reliable, but billed for
+  the instance's whole lifetime and not free.
+
+I have not been able to verify the SSE-keeps-CPU-alive behaviour on real Cloud
+Run infrastructure — run `scripts/smoke_test.sh` against the deployed URL and
+watch whether the progress percentage advances steadily.
+
 ### Two Cloud Run specifics that will bite you silently
 
 **1. `--no-cpu-throttling` is mandatory here.** By default Cloud Run allocates
@@ -158,9 +183,19 @@ the output file* — not just the process. The deploy script uses `8Gi` with
 `MAX_UPLOAD_MB=2048`; if you size memory down, size `MAX_UPLOAD_MB` down with
 it or renders will OOM partway through.
 
-`--concurrency 1` keeps one render per instance, matching
-`MAX_CONCURRENT_RENDERS=1` — renders are CPU-bound and two on one box just make
-both slower.
+**`--max-instances 1` is required, not a cost control.** Job state lives in the
+in-process table in [`app/jobs.py`](app/jobs.py) and the finished MP4 sits on
+that instance's local filesystem. With more than one instance, a status poll or
+the result download can land on an instance that has never heard of the job and
+answer `404`. Lifting this means moving job state to Redis and `WORK_DIR` to
+shared storage first.
+
+**`--concurrency` must be greater than 1.** One rendering client holds several
+concurrent requests: the SSE progress stream stays open for the whole render,
+and the result download arrives while it is still open. At `--concurrency 1`
+the open stream occupies the only slot and the download blocks behind it.
+Actual render parallelism is capped separately by `MAX_CONCURRENT_RENDERS=1`,
+which is what keeps two renders off one CPU.
 
 ### Other hosts
 
