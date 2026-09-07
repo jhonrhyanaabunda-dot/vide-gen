@@ -428,6 +428,66 @@ textarea::placeholder {
   border: 2px solid var(--emerald);
 }
 
+/* ---- Render engine selector ---- */
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--stone-gray);
+  border-radius: 50px;
+  padding: 3px;
+  gap: 3px;
+  background: rgba(255, 255, 255, 0.03);
+}
+.segmented button {
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--medium-gray);
+  background: transparent;
+  border: 0;
+  border-radius: 50px;
+  padding: 6px 16px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.segmented button:hover:not(:disabled) {
+  color: var(--white);
+}
+.segmented button[aria-pressed="true"] {
+  background: var(--emerald);
+  color: var(--charcoal);
+}
+.segmented button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.badge-warn {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ffb4b4;
+  border-color: var(--error);
+}
+.badge-muted {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--medium-gray);
+  border-color: var(--stone-gray);
+}
+
+.engine-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.engine-row .engine-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--medium-gray);
+}
+
 @media (max-width: 720px) {
   .nav {
     padding: 0 20px;
@@ -450,5 +510,16 @@ textarea::placeholder {
   }
   .beat-row .field-pair {
     grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 720px) {
+  .segmented {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .segmented button {
+    flex: 1;
+    padding: 8px 10px;
   }
 }

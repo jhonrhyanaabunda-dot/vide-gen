@@ -1,0 +1,65 @@
+"use client";
+
+/**
+ * Configuration + health probing for the MoviePy render backend.
+ *
+ * The backend is optional. With NEXT_PUBLIC_RENDER_BACKEND_URL unset the app
+ * behaves exactly as it always has — everything renders in the browser with
+ * FFmpeg.wasm. When it is set and reachable, rendering moves server-side.
+ */
+
+// NEXT_PUBLIC_* values are inlined at build time, so these must be referenced
+// as full literals — a computed `process.env[name]` would be undefined.
+export const BACKEND_URL = (process.env.NEXT_PUBLIC_RENDER_BACKEND_URL || "").replace(/\/+$/, "");
+
+/**
+ * Optional shared secret matching RENDER_API_KEY on the service.
+ *
+ * Because the browser uploads directly to the backend (Vercel's 4.5 MB body
+ * cap makes proxying impossible), anything the browser needs to send is
+ * visible to whoever opens devtools. Treat this as a speed bump that keeps
+ * casual traffic off your renderer, not as a secret. For real access control,
+ * put the service behind SSO/a private network, or issue short-lived tokens
+ * from a Next.js route.
+ */
+export const BACKEND_API_KEY = process.env.NEXT_PUBLIC_RENDER_API_KEY || "";
+
+export type BackendHealth = {
+  status: "ok" | "degraded";
+  moviepy: string;
+  ffmpeg: string | null;
+  ffmpegAvailable: boolean;
+  brandFontAvailable: boolean;
+  maxUploadMb: number;
+  concurrency: number;
+  authRequired: boolean;
+};
+
+export function isBackendConfigured(): boolean {
+  return BACKEND_URL.length > 0;
+}
+
+export function authHeaders(): Record<string, string> {
+  return BACKEND_API_KEY ? { "X-API-Key": BACKEND_API_KEY } : {};
+}
+
+/** Probe the service. Resolves null when it's unset, down, or unreachable. */
+export async function checkBackendHealth(timeoutMs = 5000): Promise<BackendHealth | null> {
+  if (!isBackendConfigured()) return null;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const res = await fetch(`${BACKEND_URL}/health`, {
+      signal: ctrl.signal,
+      headers: authHeaders(),
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as BackendHealth;
+  } catch {
+    // Unreachable, CORS-blocked, or timed out — the caller falls back to the
+    // browser renderer rather than failing the whole app.
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}

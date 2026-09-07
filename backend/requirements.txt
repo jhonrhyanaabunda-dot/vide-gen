@@ -1,0 +1,18 @@
+# --- Render service (MoviePy) ---------------------------------------------
+# MoviePy 2.x has a different API from 1.x (subclipped/with_* /Effect classes).
+# Pin the major so an unattended `pip install` can't silently swap APIs.
+moviepy>=2.1.2,<3.0
+
+# MoviePy pulls these itself, but pin them explicitly so the Docker layer is
+# reproducible and so `pip install` failures point at the real culprit.
+imageio-ffmpeg>=0.5.1        # ships the static ffmpeg binary MoviePy shells out to
+opencv-python-headless>=4.9  # vfx.Resize uses cv2; "headless" = no GUI/X11 deps
+numpy>=1.26
+pillow>=10.2                 # overlay + closing-slide rasterisation
+proglog<=1.0.0               # MoviePy's progress hook, we subclass it
+
+# --- HTTP layer ------------------------------------------------------------
+fastapi>=0.110
+uvicorn[standard]>=0.29
+python-multipart>=0.0.9      # required for multipart/form-data uploads
+pydantic>=2.6

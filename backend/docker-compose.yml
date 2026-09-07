@@ -1,0 +1,33 @@
+# Local run of the render service:
+#   docker compose up --build
+# then set NEXT_PUBLIC_RENDER_BACKEND_URL=http://localhost:8000 in .env.local.
+
+services:
+  render:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      # Dev default. In production list your real origins instead of "*".
+      ALLOWED_ORIGINS: "http://localhost:3000"
+      WORK_DIR: /data/jobs
+      MAX_UPLOAD_MB: "1024"
+      JOB_TTL_SECONDS: "3600"
+      MAX_CONCURRENT_RENDERS: "1"
+      FFMPEG_PRESET: veryfast
+      MUSIC_PAD_MODE: silence
+      # RENDER_API_KEY: change-me
+    volumes:
+      # Job scratch space. Renders are large and short-lived; a named volume
+      # keeps them off the image layer and out of the repo.
+      - render-jobs:/data/jobs
+    # A single render can use every core it's given; without a ceiling it will
+    # starve anything else sharing the host.
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 4G
+
+volumes:
+  render-jobs:
