@@ -77,10 +77,14 @@ _font_cache: dict = {}
 # True once any lookup had to use Pillow's built-in face, which is a different
 # design at a different scale — worth surfacing on /health.
 _using_builtin_face = False
+# Path of the face actually resolved, so /health can name it instead of just
+# claiming a brand font is present.
+_resolved_path: Optional[str] = None
 
 
 def load_font(weight: int, size: int) -> ImageFont.FreeTypeFont:
     """Best available face for a CSS-ish weight, cached per (weight, size)."""
+    global _using_builtin_face, _resolved_path
     key = (weight, size)
     if key in _font_cache:
         return _font_cache[key]
@@ -94,6 +98,7 @@ def load_font(weight: int, size: int) -> ImageFont.FreeTypeFont:
         try:
             font = ImageFont.truetype(str(variable), size)
             font.set_variation_by_axes([float(weight)])
+            _resolved_path = str(variable)
         except (OSError, AttributeError):
             # Pillow built without FreeType variation support - fall through to
             # the static faces rather than rendering every weight identically.
@@ -106,6 +111,7 @@ def load_font(weight: int, size: int) -> ImageFont.FreeTypeFont:
             try:
                 if path.is_file():
                     font = ImageFont.truetype(str(path), size)
+                    _resolved_path = str(path)
                     break
             except OSError:
                 continue
@@ -114,7 +120,6 @@ def load_font(weight: int, size: int) -> ImageFont.FreeTypeFont:
         # Pillow's built-in face. Passing `size` matters: the no-arg form
         # returns a fixed ~10px bitmap font that silently ignores every size we
         # ask for, which renders the captions unreadably small.
-        global _using_builtin_face
         _using_builtin_face = True
         try:
             font = ImageFont.load_default(size=size)
@@ -135,6 +140,23 @@ def fonts_available() -> bool:
     load_font(900, 84)
     load_font(400, 40)
     return not _using_builtin_face
+
+
+def active_face() -> dict:
+    """Which face server-drawn overlays will actually use.
+
+    A bare "font available: true" was misleading — DejaVu satisfies it, so a
+    container that never received Sora still reported the brand font as
+    present. Name the face instead.
+    """
+    load_font(900, 84)
+    name = Path(_resolved_path).name if _resolved_path else "Pillow built-in"
+    return {
+        "face": name,
+        "path": _resolved_path,
+        "isBrandFont": bool(_resolved_path) and "Sora" in name,
+        "usable": not _using_builtin_face,
+    }
 
 
 # --- drawing helpers --------------------------------------------------------

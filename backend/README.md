@@ -125,24 +125,65 @@ behind SSO, or issue short-lived tokens from a Next.js route.
 
 ---
 
-## Deploying
+## Deploying to Cloud Run (recommended)
 
-Any container host works. Point `NEXT_PUBLIC_RENDER_BACKEND_URL` at the result
-and add your frontend origin to `ALLOWED_ORIGINS`.
+```bash
+cd backend
+./deploy-cloudrun.sh YOUR_PROJECT_ID us-central1
+./scripts/smoke_test.sh https://your-service-url    # verify before wiring it up
+```
 
-- **Railway / Render / Fly.io** — point at `backend/`, the Dockerfile is
-  detected automatically. Set the env vars from the table above.
-- **Cloud Run** — `gcloud run deploy --source backend --memory 4Gi --cpu 2
-  --timeout 900`. Raise the request timeout: uploads of real footage are slow.
+Then set `NEXT_PUBLIC_RENDER_BACKEND_URL` to the printed URL in Vercel and
+redeploy the frontend.
+
+Cloud Run suits this workload because it **scales to zero** — a dealership
+renders a few reels a week, and an always-on 2 vCPU/4 GB container elsewhere
+bills continuously for an idle box. Its request timeout also goes to 60
+minutes, so no render can outrun it.
+
+### Two Cloud Run specifics that will bite you silently
+
+**1. `--no-cpu-throttling` is mandatory here.** By default Cloud Run allocates
+CPU *only during request processing*. This service returns `202` immediately and
+renders on a background thread, so with the default setting the render would be
+throttled to near-zero CPU the moment the response is sent, and appear to hang.
+`--no-cpu-throttling` switches to instance-based billing, which keeps the CPU
+allocated for the instance's lifetime. Instances still scale to zero when idle,
+so you pay for the render plus a short idle tail — not for a permanently running
+box.
+
+**2. The container filesystem is in-memory.** Every uploaded byte counts against
+the memory limit, so memory must cover *uploads + MoviePy/ffmpeg working set +
+the output file* — not just the process. The deploy script uses `8Gi` with
+`MAX_UPLOAD_MB=2048`; if you size memory down, size `MAX_UPLOAD_MB` down with
+it or renders will OOM partway through.
+
+`--concurrency 1` keeps one render per instance, matching
+`MAX_CONCURRENT_RENDERS=1` — renders are CPU-bound and two on one box just make
+both slower.
+
+### Other hosts
+
+Any container host works; the Dockerfile is standard.
+
+- **Fly.io / Render** — cheapest of the always-on options if you'd rather avoid
+  cold starts. Fly is roughly $20–30/mo at this size, Render $25+.
+- **Railway** — priced per vCPU/GB continuously, so an always-on 2 vCPU/4 GB
+  service lands near $120/mo. Avoid for this workload.
 - **A VM** — `docker compose up -d` behind nginx/Caddy for TLS.
 
-Sizing: **2 vCPU / 4 GB** renders a 30 s reel in roughly one to three minutes.
-Give the container a real CPU limit — one render will happily consume every core
-it's offered.
+### Cold starts
 
-Scaling past one replica means replacing two things: the in-process job table in
-[`app/jobs.py`](app/jobs.py) (→ Redis) and `WORK_DIR` (→ shared or object
-storage). Everything else is already stateless.
+The image is ~650 MB, so a scaled-to-zero instance adds roughly ten to thirty
+seconds to the first render. That's noise next to a render that takes minutes.
+Set `--min-instances 1` to remove it, at the cost of paying for an idle
+instance.
+
+### Scaling past one instance
+
+Two things hold state: the in-process job table in [`app/jobs.py`](app/jobs.py)
+(→ Redis) and `WORK_DIR` (→ GCS or another shared store). Everything else is
+already stateless.
 
 ---
 

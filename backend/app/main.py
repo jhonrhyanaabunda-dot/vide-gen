@@ -28,7 +28,7 @@ from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from .config import settings
 from .jobs import DONE, ERROR, store
 from .models import JobStatus, RenderRequest
-from .overlays import fonts_available
+from .overlays import active_face, fonts_available
 from .render import render_reel
 
 app = FastAPI(
@@ -99,9 +99,11 @@ async def health() -> dict:
         "moviepy": moviepy_version,
         "ffmpeg": ffmpeg_path if ffmpeg_ok else None,
         "ffmpegAvailable": ffmpeg_ok,
-        # False just means server-drawn overlays fall back to a default face;
-        # browser-supplied overlays are unaffected.
-        "brandFontAvailable": fonts_available(),
+        # Name the face rather than asserting "a font is present": DejaVu
+        # satisfies that and would misreport a container that never got Sora.
+        # Either way this only affects server-drawn overlays — the frontend
+        # uploads canvas-rendered ones.
+        "font": active_face(),
         "maxUploadMb": settings.max_upload_mb,
         "concurrency": settings.max_concurrent_renders,
         "authRequired": bool(settings.api_key),

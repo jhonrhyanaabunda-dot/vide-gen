@@ -1,0 +1,14 @@
+# Keep the Cloud Build upload small — none of this belongs in the image.
+.venv/
+venv/
+__pycache__/
+*.pyc
+data/
+.env
+.env.*
+!.env.example
+*.mp4
+*.mov
+.pytest_cache/
+.git/
+.gitignore

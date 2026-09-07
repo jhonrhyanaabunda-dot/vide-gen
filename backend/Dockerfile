@@ -29,15 +29,12 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Fetch the brand font (Sora, OFL) for server-rendered overlays. Best-effort:
-# the frontend normally uploads canvas-rendered overlays, and DejaVu covers the
-# fallback, so a network hiccup here must not fail the build.
-RUN mkdir -p /app/fonts && \
-    curl -fsSL -o "/app/fonts/Sora[wght].ttf" \
-      "https://github.com/google/fonts/raw/main/ofl/sora/Sora%5Bwght%5D.ttf" \
-      || echo "WARN: Sora download failed; server-drawn overlays will use DejaVu."
-
 COPY app ./app
+# Sora (OFL) is vendored in fonts/ rather than fetched here. An earlier version
+# downloaded it at build time and silently fell back to DejaVu whenever the
+# build had no network — which is exactly what happened, and the health check
+# still reported the brand font as present. Vendoring makes the build
+# hermetic and the result deterministic.
 COPY fonts ./fonts
 
 # Pre-download the imageio-ffmpeg binary at build time so the first render
@@ -49,10 +46,10 @@ RUN useradd --create-home --uid 10001 appuser \
     && chown -R appuser:appuser /app /data
 USER appuser
 
-EXPOSE 8000
+EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-    CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=4).status==200 else 1)"
+    CMD python -c "import os,urllib.request,sys; p=os.environ.get('PORT','8000'); sys.exit(0 if urllib.request.urlopen(f'http://127.0.0.1:{p}/health', timeout=4).status==200 else 1)"
 
 # One worker: renders are CPU-bound and the job store is in-process, so extra
 # workers would each keep their own job table. Scale with MAX_CONCURRENT_RENDERS

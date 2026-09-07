@@ -29,7 +29,17 @@ export type BackendHealth = {
   moviepy: string;
   ffmpeg: string | null;
   ffmpegAvailable: boolean;
-  brandFontAvailable: boolean;
+  /**
+   * Which typeface the service would use for overlays it draws itself. Only
+   * relevant to direct API callers — this frontend uploads canvas-rendered
+   * overlays, so the reel's captions use the real Sora webfont regardless.
+   */
+  font?: {
+    face: string;
+    path: string | null;
+    isBrandFont: boolean;
+    usable: boolean;
+  };
   maxUploadMb: number;
   concurrency: number;
   authRequired: boolean;
