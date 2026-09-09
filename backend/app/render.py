@@ -33,6 +33,15 @@ from .overlays import make_beat_overlay, make_closing_slide
 
 Progress = Callable[..., None]
 
+
+def _moviepy_version() -> str:
+    try:
+        from moviepy import __version__
+
+        return __version__
+    except Exception:  # noqa: BLE001 - never let a version lookup fail a render
+        return "unknown"
+
 # Progress budget. Building clips is lazy and quick; the single encode at the
 # end is where the minutes go, so it owns most of the bar.
 P_PREPARE_START, P_PREPARE_END = 5.0, 30.0
@@ -132,6 +141,13 @@ def render_reel(
     segments: List = []
 
     try:
+        # First line of every job's log, so the transcript itself proves which
+        # engine did the work rather than leaving it to be inferred.
+        progress(
+            P_PREPARE_START - 1,
+            f"Rendering with MoviePy {_moviepy_version()} (server-side)",
+            level="ok",
+        )
         # ---- 1. The six beat segments ------------------------------------
         n = max(1, len(req.segments))
         span = (P_PREPARE_END - P_PREPARE_START) / n

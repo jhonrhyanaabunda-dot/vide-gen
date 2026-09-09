@@ -26,6 +26,9 @@ export const BACKEND_API_KEY = process.env.NEXT_PUBLIC_RENDER_API_KEY || "";
 
 export type BackendHealth = {
   status: "ok" | "degraded";
+  /** Identity markers — see checkBackendHealth(). */
+  service?: string;
+  engine?: string;
   moviepy: string;
   ffmpeg: string | null;
   ffmpegAvailable: boolean;
@@ -64,7 +67,21 @@ export async function checkBackendHealth(timeoutMs = 5000): Promise<BackendHealt
       headers: authHeaders(),
     });
     if (!res.ok) return null;
-    return (await res.json()) as BackendHealth;
+    const body = (await res.json()) as BackendHealth;
+
+    // Confirm this is actually the render service. A tunnel or reverse proxy
+    // aimed at the wrong local port answers 200 with some other app's JSON,
+    // and without this we'd happily upload footage to it. Refusing here makes
+    // the app fall back to browser rendering instead.
+    if (body?.service !== "reel-render" || body?.engine !== "moviepy") {
+      console.warn(
+        `[reel-studio] ${BACKEND_URL} responded, but is not the MoviePy render ` +
+          `service (service=${body?.service ?? "?"}, engine=${body?.engine ?? "?"}). ` +
+          `Ignoring it and using the browser renderer.`
+      );
+      return null;
+    }
+    return body;
   } catch {
     // Unreachable, CORS-blocked, or timed out — the caller falls back to the
     // browser renderer rather than failing the whole app.

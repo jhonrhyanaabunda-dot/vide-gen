@@ -96,6 +96,11 @@ async def health() -> dict:
 
     return {
         "status": "ok" if ffmpeg_ok else "degraded",
+        # Identity markers. A Funnel or reverse proxy pointed at the wrong
+        # local port will still answer 200 with somebody else's JSON, so the
+        # client checks these before trusting the endpoint as a renderer.
+        "service": "reel-render",
+        "engine": "moviepy",
         "moviepy": moviepy_version,
         "ffmpeg": ffmpeg_path if ffmpeg_ok else None,
         "ffmpegAvailable": ffmpeg_ok,
