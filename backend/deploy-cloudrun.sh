@@ -9,6 +9,18 @@
 # deploys. Prints the service URL for NEXT_PUBLIC_RENDER_BACKEND_URL.
 set -euo pipefail
 
+# Prefer a native gcloud; fall back to the ./gcloud wrapper that runs Google's
+# official container. The native Cloud SDK needs Python 3.10+, which isn't
+# always present, and Docker is already required to build the image anyway.
+if command -v gcloud >/dev/null 2>&1; then
+  GCLOUD=gcloud
+elif [ -x "$(dirname "${BASH_SOURCE[0]}")/gcloud" ]; then
+  GCLOUD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/gcloud"
+else
+  echo "No gcloud found. Install the Cloud SDK, or use the ./gcloud wrapper." >&2
+  exit 1
+fi
+
 PROJECT="${1:?Usage: ./deploy-cloudrun.sh PROJECT_ID [REGION]}"
 REGION="${2:-us-central1}"
 SERVICE="reel-render"
@@ -43,7 +55,7 @@ fi
 
 echo "→ deploying $SERVICE to $PROJECT / $REGION  (billing: $BILLING, ${CPU} vCPU / ${MEMORY})"
 
-gcloud run deploy "$SERVICE" \
+"$GCLOUD" run deploy "$SERVICE" \
   --project "$PROJECT" \
   --region "$REGION" \
   --source . \
@@ -59,7 +71,7 @@ gcloud run deploy "$SERVICE" \
   $CPU_FLAG \
   --set-env-vars "ALLOWED_ORIGINS=${ALLOWED_ORIGINS},MAX_UPLOAD_MB=${MAX_UPLOAD_MB},MAX_CONCURRENT_RENDERS=1,FFMPEG_PRESET=veryfast,WORK_DIR=/tmp/reel-studio,JOB_TTL_SECONDS=1800"
 
-URL="$(gcloud run services describe "$SERVICE" --project "$PROJECT" --region "$REGION" --format='value(status.url)')"
+URL="$("$GCLOUD" run services describe "$SERVICE" --project "$PROJECT" --region "$REGION" --format='value(status.url)')"
 
 cat <<MSG
 

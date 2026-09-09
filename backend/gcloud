@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+#
+# gcloud, run from Google's official container.
+#
+# This machine has no Homebrew and only Python 3.9, which the native Cloud SDK
+# refuses to run on (it needs 3.10+). Docker is already here, so borrow it
+# rather than installing a second Python system-wide.
+#
+# Credentials persist in ~/.config/gcloud, so `auth login` is a one-time step.
+# The repo's backend/ directory is mounted at /workspace and is the working
+# directory, so `--source .` uploads the right build context.
+set -euo pipefail
+
+IMAGE="gcr.io/google.com/cloudsdktool/google-cloud-cli:stable"
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+exec docker run --rm -it \
+  -v "$HOME/.config/gcloud:/root/.config/gcloud" \
+  -v "$HERE:/workspace" \
+  -w /workspace \
+  "$IMAGE" gcloud "$@"
