@@ -73,6 +73,18 @@ export async function checkBackendHealth(timeoutMs = 5000): Promise<BackendHealt
     // aimed at the wrong local port answers 200 with some other app's JSON,
     // and without this we'd happily upload footage to it. Refusing here makes
     // the app fall back to browser rendering instead.
+    // The service demands a key but we have none to send. /health is
+    // unauthenticated, so without this check the app would look connected and
+    // then fail every render with a 401 — the worst kind of "working".
+    if (body?.authRequired && !BACKEND_API_KEY) {
+      console.warn(
+        `[reel-studio] ${BACKEND_URL} requires an API key but ` +
+          `NEXT_PUBLIC_RENDER_API_KEY is not set in this build. Renders would ` +
+          `be rejected with 401, so the browser renderer will be used instead.`
+      );
+      return null;
+    }
+
     if (body?.service !== "reel-render" || body?.engine !== "moviepy") {
       console.warn(
         `[reel-studio] ${BACKEND_URL} responded, but is not the MoviePy render ` +
